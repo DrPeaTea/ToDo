@@ -1,11 +1,18 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 
+
+await client.connect();
+
 type Data = {
   name: string;
 };
+
 let toDoArray = [];
 let currentID = 1;
+
+// npm install pg --save
+// npm i --save-dev @types/pg
 
 export default function handler(
   req: NextApiRequest,
@@ -48,22 +55,14 @@ export default function handler(
 
     //Checks if object exist
     if (finishedTask) {
-      if (description && status) {
-        finishedTask.description = description;
+      if (status !== undefined) {
         finishedTask.status = status;
-        
-      } else if (description) {
-        finishedTask.description = description;
-       
-      } else if (status) {
-        finishedTask.status = status;
-      
-      } else {
-        res
-          .status(400)
-          .json({ message: "a description or status of the task is required for PUT" });
       }
-     
+    
+      if (description !== undefined) {
+        finishedTask.description = description;
+      }
+    
       res.status(200).json(finishedTask);
     } else {
       res.status(400).json({ message: "Task not found" });
