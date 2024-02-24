@@ -13,35 +13,79 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  // const description = req.body.description || "hello";
+  // Get Todos:
+  if (req.method === "GET") {
+    const isCompleted =
+      req.query.completed === "true" || req.query.completed === "false"
+        ? req.query.completed === "true"
+        : undefined;
+
+    let text = "SELECT * from todolist";
+    const values = [];
+
+    if (isCompleted !== undefined) {
+      text += " WHERE is_completed = $1";
+      values.push(isCompleted);
+    }
+
+    const result = await client.query(text, values);
+    const todos = result.rows;
+    res.status(200).json(todos);
+    return;
+  }
 
   // Create Todo:
-  //   const text = `INSERT INTO todolist(task_description) VALUES($1) RETURNING *`;
-  //   const values = ["hello"];
+  if (req.method === "POST") {
+    const text = `INSERT INTO todolist(task_description) VALUES($1) RETURNING *`;
+    const description = req.body.description || "Task Was left Empty";
+    const values = [description];
+    const result = await client.query(text, values);
+    const todos = result.rows;
+    res.status(200).json(todos);
+    return;
+  }
 
-  // const result = await client.query(text, values);
+  //Delete a single task:
+  if (req.method === "DELETE") {
+    if (req.body.id === 0) {
+      const text = "DELETE FROM todolist WHERE is_completed = true";
+      await client.query(text);
+      res
+        .status(200)
+        .json({ message: "Completed tasks deleted successfully." });
+      return;
+    } else {
+      const text = "DELETE FROM todolist WHERE id = $1";
+      const taskId = req.body.id;
+      const values = [taskId];
+      const result = await client.query(text, values);
+      const todos = result.rows;
+      res.status(200).json(todos);
+      return;
+    }
+  }
 
-  // Get Todos:
-  //   const text = "SELECT * from todolist";
-  //   const result = await client.query(text);
-  //   const todos = result.rows;
+  // Updating tasks
+  if (req.method === "PUT") {
+    let id = req.body.id;
+    let description = req.body.description;
+    let status = req.body.status;
 
-  // Update Todo
-  //   const text = "UPDATE todolist SET is_completed = $1 WHERE id = $2";
-  //   const values = [true, 1];
+    if (status !== undefined) {
+      const text = "UPDATE todolist SET is_completed = $1 WHERE id = $2";
+      const values = [status, id];
+      const result = await client.query(text, values);
+      const todos = result.rows;
+      res.status(200).json(todos);
+    }
+    if (description !== undefined) {
+      const text = "UPDATE todolist SET task_description = $1 WHERE id = $2";
+      const values = [description, id];
+      const result = await client.query(text, values);
+      const todos = result.rows;
+      res.status(200).json(todos);
+    }
 
-//   const text = "DELETE FROM todolist WHERE id = $1";
-//   const values = [1];
-
-// const text = "DELETE FROM todolist WHERE is_completed = true";
-
-//   const result = await client.query(text, values);
-
-  // UPDATE todolist
-  // SET task_description = 'Your new task description here'
-  // WHERE id = 1;
-
-  // Add a todo to the database
-
-  res.status(200).json({ data: result.rows });
+    return;
+  }
 }

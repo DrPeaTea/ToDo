@@ -1,34 +1,31 @@
-import React, { useState } from 'react';
-import style from '../styles/toDoForm.module.css'
+import React, { useState } from "react";
+import style from "./toDoForm.module.css";
 
 const TodoForm = ({ onAddTask }) => {
-  const [taskDescription, setTaskDescription] = useState('');
+  const [taskDescription, setTaskDescription] = useState("");
 
-  const handleAddTask = () => {
-    if (taskDescription === '') {
-      alert('Please enter a task description.');
+  const handleAddTask = (event) => {
+    event.preventDefault();
+
+    if (!taskDescription.trim()) {
+      alert("Please enter a task description.");
       return;
     }
 
-    onAddTask(taskDescription);
-    setTaskDescription('');
-  };
-
-  const handleKeyPress = (event) => {
-    if (event.key === 'Enter') {
-      handleAddTask();
-    }
+    onAddTask(taskDescription.trim());
+    setTaskDescription("");
   };
 
   return (
     <div>
-      <input 
-        type="text"
-        className={style.new_task}
-        value={taskDescription}
-        onChange={(event) => setTaskDescription(event.target.value)}
-        onKeyPress={handleKeyPress}
-      />
+      <form onSubmit={handleAddTask}>
+        <input
+          type="text"
+          className={style.new_task}
+          value={taskDescription}
+          onChange={(event) => setTaskDescription(event.target.value)}
+        />
+      </form>
     </div>
   );
 };
